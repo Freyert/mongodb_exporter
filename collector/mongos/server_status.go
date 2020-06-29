@@ -15,34 +15,120 @@
 package mongos
 
 import (
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+)
 
-	"github.com/percona/mongodb_exporter/collector/common"
+var (
+	instanceUptimeSeconds = prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: Namespace,
+		Subsystem: "instance",
+		Name:      "uptime_seconds",
+		Help:      "The value of the uptime field corresponds to the number of seconds that the mongos or mongod process has been active.",
+	})
+	instanceUptimeEstimateSeconds = prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: Namespace,
+		Subsystem: "instance",
+		Name:      "uptime_estimate_seconds",
+		Help:      "uptimeEstimate provides the uptime as calculated from MongoDB's internal course-grained time keeping system.",
+	})
+	instanceLocalTime = prometheus.NewCounter(prometheus.CounterOpts{
+		Namespace: Namespace,
+		Subsystem: "instance",
+		Name:      "local_time",
+		Help:      "The localTime value is the current time, according to the server, in UTC specified in an ISODate format.",
+	})
 )
 
 // ServerStatus keeps the data returned by the serverStatus() method.
 type ServerStatus struct {
-	collector_common.ServerStatus `bson:",inline"`
+	Uptime         float64   `bson:"uptime"`
+	UptimeEstimate float64   `bson:"uptimeEstimate"`
+	LocalTime      time.Time `bson:"localTime"`
 
-	Metrics *MetricsStats `bson:"metrics"`
+	Asserts *AssertsStats `bson:"asserts"`
+
+	Connections *ConnectionStats `bson:"connections"`
+
+	ExtraInfo *ExtraInfo `bson:"extra_info"`
+
+	Network *NetworkStats `bson:"network"`
+
+	Opcounters *OpcountersStats `bson:"opcounters"`
+	Mem        *MemStats        `bson:"mem"`
+	Metrics    *MetricsStats    `bson:"metrics"`
+
+	Cursors *Cursors `bson:"cursors"`
 }
 
 // Export exports the server status to be consumed by prometheus.
 func (status *ServerStatus) Export(ch chan<- prometheus.Metric) {
-	status.ServerStatus.Export(ch)
+	instanceUptimeSeconds.Set(status.Uptime)
+	instanceUptimeEstimateSeconds.Set(status.Uptime)
+	instanceLocalTime.Set(float64(status.LocalTime.Unix()))
+	instanceUptimeSeconds.Collect(ch)
+	instanceUptimeEstimateSeconds.Collect(ch)
+	instanceLocalTime.Collect(ch)
+
+	if status.Asserts != nil {
+		status.Asserts.Export(ch)
+	}
+	if status.Connections != nil {
+		status.Connections.Export(ch)
+	}
+	if status.ExtraInfo != nil {
+		status.ExtraInfo.Export(ch)
+	}
+	if status.Network != nil {
+		status.Network.Export(ch)
+	}
+	if status.Opcounters != nil {
+		status.Opcounters.Export(ch)
+	}
+	if status.Mem != nil {
+		status.Mem.Export(ch)
+	}
 	if status.Metrics != nil {
 		status.Metrics.Export(ch)
+	}
+	if status.Cursors != nil {
+		status.Cursors.Export(ch)
 	}
 }
 
 // Describe describes the server status for prometheus.
 func (status *ServerStatus) Describe(ch chan<- *prometheus.Desc) {
-	status.ServerStatus.Describe(ch)
+	instanceUptimeSeconds.Describe(ch)
+	instanceUptimeEstimateSeconds.Describe(ch)
+	instanceLocalTime.Describe(ch)
+
+	if status.Asserts != nil {
+		status.Asserts.Describe(ch)
+	}
+	if status.Connections != nil {
+		status.Connections.Describe(ch)
+	}
+	if status.ExtraInfo != nil {
+		status.ExtraInfo.Describe(ch)
+	}
+	if status.Network != nil {
+		status.Network.Describe(ch)
+	}
+	if status.Opcounters != nil {
+		status.Opcounters.Describe(ch)
+	}
+	if status.Mem != nil {
+		status.Mem.Describe(ch)
+	}
 	if status.Metrics != nil {
 		status.Metrics.Describe(ch)
+	}
+	if status.Cursors != nil {
+		status.Cursors.Describe(ch)
 	}
 }
 

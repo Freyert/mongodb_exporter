@@ -6,11 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Changed
-- [PMM-3512](https://jira.percona.com/browse/PMM-3512): Switched to [kingpin](https://github.com/alecthomas/kingpin) library.
-This is a **BREAKING CHANGE** because kingpin uses `--` instead of `-` for long flags, so be careful when updating.
-- [PMM-2261](https://jira.percona.com/browse/PMM-2261) Unify common mongod and mongos server metrics, thx [@bz2](https://github.com/bz2)
-This is a **BREAKING CHANGE**. The labels of these metrics are now prefixed with just `mongodb_` rather than `mongodb_mongo[ds]_`.
 
 ## [0.6.3] - 2019-02-13
 ### Added
@@ -64,12 +59,12 @@ This is a **BREAKING CHANGE**. The labels of these metrics are now prefixed with
 ### Added
 - New flags `-collect.database` and `-collect.collection` can be used to enable collection of database and collection
   metrics. They are disabled by default.
-- MongoDB connections are now kept between the scrapes. New flag `-mongodb.max-connections` (with the default value `1`) 
+- MongoDB connections are now kept between the scrapes. New flag `-mongodb.max-connections` (with the default value `1`)
 controls the maximum number of established connections.
 - Add standard metrics:
   - `mongodb_scrape_errors_total`
   - `mongodb_up`
-- Some queries now contain [cursor comments](https://www.percona.com/blog/2017/06/21/tracing-mongodb-queries-to-code-with-cursor-comments/) 
+- Some queries now contain [cursor comments](https://www.percona.com/blog/2017/06/21/tracing-mongodb-queries-to-code-with-cursor-comments/)
 with source code locations.
 
 ### Changed
